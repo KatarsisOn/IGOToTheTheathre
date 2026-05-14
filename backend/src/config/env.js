@@ -13,6 +13,7 @@ const env = {
   JSON_DB_FILE:
     process.env.JSON_DB_FILE || path.join(rootDir, 'data', 'app-store.json'),
   MONGODB_URI: process.env.MONGODB_URI || process.env.MONGO_URI || '',
+  MONGODB_DB_NAME: process.env.MONGODB_DB_NAME || 'igotothetheatre',
   JWT_SECRET: process.env.JWT_SECRET || 'local-dev-secret',
   OPENAI_API_KEY: process.env.OPENAI_API_KEY || '',
   AI_ENABLED: process.env.AI_ENABLED === 'true',

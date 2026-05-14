@@ -5,6 +5,7 @@ process.env.JSON_DB_FILE = path.join(
   os.tmpdir(),
   `igotothetheatre-test-${Date.now()}-${Math.random()}.json`,
 )
+process.env.DATABASE_MODE = 'json'
 
 const test = require('node:test')
 const assert = require('node:assert/strict')
@@ -14,8 +15,8 @@ test('classifies fatigue text', () => {
   assert.equal(classifyState('устала после учебы и нет сил'), 'усталость')
 })
 
-test('returns recommendation for safe normal request', () => {
-  const result = createRecommendation(
+test('returns recommendation for safe normal request', async () => {
+  const result = await createRecommendation(
     {
       text: 'устала после учебы, хочу спокойно куда-то выбраться',
       city: 'Владивосток',
@@ -31,8 +32,8 @@ test('returns recommendation for safe normal request', () => {
   assert.ok(result.recommendation.explanation.includes('усталость'))
 })
 
-test('returns careful mode instead of event for crisis text', () => {
-  const result = createRecommendation(
+test('returns careful mode instead of event for crisis text', async () => {
+  const result = await createRecommendation(
     {
       text: 'есть мысли про самоповреждение',
       city: 'Владивосток',
@@ -44,8 +45,8 @@ test('returns careful mode instead of event for crisis text', () => {
   assert.equal(result.recommendation, null)
 })
 
-test('requires consent for only over-budget safe candidate', () => {
-  const result = createRecommendation(
+test('requires consent for only over-budget safe candidate', async () => {
+  const result = await createRecommendation(
     {
       text: 'хочу мастер-класс для уверенности',
       city: 'Владивосток',

@@ -16,19 +16,22 @@ router.get('/health', (req, res) => {
   sendOk(res, {
     service: 'IGoToTheTheatre API',
     status: 'ok',
-    storage: 'json',
+    storage: store.storage || 'json',
     uptime: process.uptime(),
   })
 })
 
-router.get('/catalog', (req, res) => {
-  sendOk(res, store.getCatalog())
-})
+router.get(
+  '/catalog',
+  asyncHandler(async (req, res) => {
+    sendOk(res, await store.getCatalog())
+  }),
+)
 
 router.post(
   '/chat/message',
   asyncHandler(async (req, res) => {
-    const result = createRecommendation(req.body || {}, req.sessionId)
+    const result = await createRecommendation(req.body || {}, req.sessionId)
     sendOk(res, result, 201)
   }),
 )
@@ -36,109 +39,109 @@ router.post(
 router.post(
   '/recommendations',
   asyncHandler(async (req, res) => {
-    const result = createRecommendation(req.body || {}, req.sessionId)
+    const result = await createRecommendation(req.body || {}, req.sessionId)
     sendOk(res, result, 201)
   }),
 )
 
-router.get('/recommendations/:id', (req, res) => {
-  const recommendation = store.getRecommendation(req.params.id)
+router.get('/recommendations/:id', asyncHandler(async (req, res) => {
+  const recommendation = await store.getRecommendation(req.params.id)
   if (!recommendation) throw new ApiError(404, 'NOT_FOUND', 'Рекомендация не найдена.')
   sendOk(res, recommendation)
-})
+}))
 
-router.post('/recommendations/:id/feedback', (req, res) => {
-  const recommendation = store.getRecommendation(req.params.id)
+router.post('/recommendations/:id/feedback', asyncHandler(async (req, res) => {
+  const recommendation = await store.getRecommendation(req.params.id)
   if (!recommendation) throw new ApiError(404, 'NOT_FOUND', 'Рекомендация не найдена.')
-  const feedback = store.saveFeedback(req.params.id, req.sessionId, {
+  const feedback = await store.saveFeedback(req.params.id, req.sessionId, {
     ...req.body,
     recommendationSnapshot: recommendation.recommendationSnapshot,
   })
   sendOk(res, feedback, 201)
-})
+}))
 
-router.get('/profile/me', (req, res) => {
-  sendOk(res, store.getProfile(req.sessionId))
-})
+router.get('/profile/me', asyncHandler(async (req, res) => {
+  sendOk(res, await store.getProfile(req.sessionId))
+}))
 
-router.put('/profile/me', (req, res) => {
-  sendOk(res, store.updateProfile(req.sessionId, req.body || {}))
-})
+router.put('/profile/me', asyncHandler(async (req, res) => {
+  sendOk(res, await store.updateProfile(req.sessionId, req.body || {}))
+}))
 
-router.get('/favorites', (req, res) => {
-  sendOk(res, store.listFavorites(req.sessionId))
-})
+router.get('/favorites', asyncHandler(async (req, res) => {
+  sendOk(res, await store.listFavorites(req.sessionId))
+}))
 
-router.post('/favorites', (req, res) => {
+router.post('/favorites', asyncHandler(async (req, res) => {
   if (!req.body.eventId) throw new ApiError(400, 'VALIDATION_ERROR', 'Укажите eventId.')
-  sendOk(res, store.addFavorite(req.sessionId, req.body.eventId), 201)
-})
+  sendOk(res, await store.addFavorite(req.sessionId, req.body.eventId), 201)
+}))
 
-router.delete('/favorites/:id', (req, res) => {
-  sendOk(res, store.removeFavorite(req.sessionId, req.params.id))
-})
+router.delete('/favorites/:id', asyncHandler(async (req, res) => {
+  sendOk(res, await store.removeFavorite(req.sessionId, req.params.id))
+}))
 
-router.get('/history', (req, res) => {
-  sendOk(res, store.listHistory(req.sessionId))
-})
+router.get('/history', asyncHandler(async (req, res) => {
+  sendOk(res, await store.listHistory(req.sessionId))
+}))
 
-router.delete('/history', (req, res) => {
-  sendOk(res, store.clearHistory(req.sessionId))
-})
+router.delete('/history', asyncHandler(async (req, res) => {
+  sendOk(res, await store.clearHistory(req.sessionId))
+}))
 
-router.get('/admin/events', (req, res) => {
-  sendOk(res, store.listEvents(req.query))
-})
+router.get('/admin/events', asyncHandler(async (req, res) => {
+  sendOk(res, await store.listEvents(req.query))
+}))
 
-router.post('/admin/events', (req, res) => {
+router.post('/admin/events', asyncHandler(async (req, res) => {
   requireEventPayload(req.body || {})
-  sendOk(res, store.createEvent(req.body), 201)
-})
+  sendOk(res, await store.createEvent(req.body), 201)
+}))
 
-router.put('/admin/events/:id', (req, res) => {
-  const event = store.updateEvent(req.params.id, req.body || {})
+router.put('/admin/events/:id', asyncHandler(async (req, res) => {
+  const event = await store.updateEvent(req.params.id, req.body || {})
   if (!event) throw new ApiError(404, 'NOT_FOUND', 'Событие не найдено.')
   sendOk(res, event)
-})
+}))
 
-router.post('/admin/events/:id/moderate', (req, res) => {
-  const event = store.updateEvent(req.params.id, {
+router.post('/admin/events/:id/moderate', asyncHandler(async (req, res) => {
+  const event = await store.updateEvent(req.params.id, {
     moderationStatus: req.body.status || 'approved',
     moderationReason: req.body.reason || '',
   })
   if (!event) throw new ApiError(404, 'NOT_FOUND', 'Событие не найдено.')
   sendOk(res, event)
-})
+}))
 
-router.get('/admin/safety-rules', (req, res) => {
-  sendOk(res, store.getData().safetyRules)
-})
+router.get('/admin/safety-rules', asyncHandler(async (req, res) => {
+  sendOk(res, (await store.getData()).safetyRules)
+}))
 
-router.post('/admin/safety-rules', (req, res) => {
+router.post('/admin/safety-rules', asyncHandler(async (req, res) => {
   if (!req.body.title || !req.body.pattern) {
     throw new ApiError(400, 'VALIDATION_ERROR', 'Укажите название и шаблон правила.')
   }
-  sendOk(res, store.upsertSafetyRule(req.body), 201)
-})
+  sendOk(res, await store.upsertSafetyRule(req.body), 201)
+}))
 
-router.put('/admin/safety-rules/:id', (req, res) => {
-  sendOk(res, store.upsertSafetyRule({ ...req.body, id: req.params.id }))
-})
+router.put('/admin/safety-rules/:id', asyncHandler(async (req, res) => {
+  sendOk(res, await store.upsertSafetyRule({ ...req.body, id: req.params.id }))
+}))
 
-router.get('/admin/data-sources', (req, res) => {
-  sendOk(res, store.getData().dataSources)
-})
+router.get('/admin/data-sources', asyncHandler(async (req, res) => {
+  sendOk(res, (await store.getData()).dataSources)
+}))
 
-router.post('/admin/data-sources', (req, res) => {
+router.post('/admin/data-sources', asyncHandler(async (req, res) => {
   if (!req.body.name) throw new ApiError(400, 'VALIDATION_ERROR', 'Укажите название источника.')
-  sendOk(res, store.upsertDataSource(req.body), 201)
-})
+  sendOk(res, await store.upsertDataSource(req.body), 201)
+}))
 
-router.post('/admin/data-sources/import', (req, res) => {
+router.post('/admin/data-sources/import', asyncHandler(async (req, res) => {
   const result = Array.isArray(req.body.events)
-    ? importManualEvents(req.body.events)
-    : loadDemoExternalBatch()
+    ? await importManualEvents(req.body.events)
+    : await loadDemoExternalBatch()
   sendOk(res, result, 201)
-})
+}))
 
 module.exports = router

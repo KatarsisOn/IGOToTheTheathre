@@ -28,8 +28,8 @@ function duplicateKey(event) {
     .join('|')
 }
 
-function importManualEvents(events = []) {
-  const existingKeys = new Set(store.getData().events.map(duplicateKey))
+async function importManualEvents(events = []) {
+  const existingKeys = new Set((await store.getData()).events.map(duplicateKey))
   const imported = []
   const duplicates = []
 
@@ -40,14 +40,14 @@ function importManualEvents(events = []) {
       duplicates.push(event.title)
       continue
     }
-    imported.push(store.createEvent(event))
+    imported.push(await store.createEvent(event))
     existingKeys.add(key)
   }
 
   return { imported, duplicates }
 }
 
-function loadDemoExternalBatch() {
+async function loadDemoExternalBatch() {
   return importManualEvents([
     {
       title: 'Открытая лекция «Как смотреть современный театр»',

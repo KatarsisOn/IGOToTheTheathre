@@ -97,14 +97,14 @@ function toRecommendationPayload(record) {
   }
 }
 
-function createRecommendation(input, sessionId = 'anonymous') {
-  const data = store.getData()
-  const profile = store.getProfile(sessionId)
+async function createRecommendation(input, sessionId = 'anonymous') {
+  const data = await store.getData()
+  const profile = await store.getProfile(sessionId)
   const params = normalizeParams(input, profile)
   const textSafety = analyzeTextSafety(params.text, data.safetyRules)
 
   if (textSafety.carefulMode) {
-    const record = store.saveRecommendation({
+    const record = await store.saveRecommendation({
       sessionId,
       status: 'careful_mode',
       message: textSafety.message,
@@ -116,7 +116,7 @@ function createRecommendation(input, sessionId = 'anonymous') {
       safety: textSafety,
     })
     if (profile.privacy.historyEnabled) {
-      store.saveHistory({
+      await store.saveHistory({
         sessionId,
         status: 'careful_mode',
         stateCategory: 'режим бережной поддержки',
@@ -148,7 +148,7 @@ function createRecommendation(input, sessionId = 'anonymous') {
   const pool = safeWithinBudget.length ? safeWithinBudget : safeCandidates
 
   if (!safeCandidates.length) {
-    const record = store.saveRecommendation({
+    const record = await store.saveRecommendation({
       sessionId,
       status: 'no_safe_match',
       message:
@@ -161,7 +161,7 @@ function createRecommendation(input, sessionId = 'anonymous') {
       safety: { filteredOut: candidates.map((candidate) => ({ id: candidate.event.id, risks: candidate.risks })) },
     })
     if (profile.privacy.historyEnabled) {
-      store.saveHistory({ sessionId, status: 'no_safe_match', stateCategory, recommendationId: record.id })
+      await store.saveHistory({ sessionId, status: 'no_safe_match', stateCategory, recommendationId: record.id })
     }
     return toRecommendationPayload(record)
   }
@@ -195,7 +195,7 @@ function createRecommendation(input, sessionId = 'anonymous') {
       ? 'Я нашёл безопасный вариант, но он выше указанного бюджета. Показать его всё равно?'
       : 'Нашёл один самый подходящий безопасный вариант. Его можно сохранить, оценить или заменить альтернативой.'
 
-  const record = store.saveRecommendation({
+  const record = await store.saveRecommendation({
     sessionId,
     status,
     message,
@@ -212,7 +212,7 @@ function createRecommendation(input, sessionId = 'anonymous') {
   })
 
   if (profile.privacy.historyEnabled) {
-    store.saveHistory({
+    await store.saveHistory({
       sessionId,
       status,
       stateCategory,

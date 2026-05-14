@@ -1,3 +1,5 @@
-const { store } = require('./jsonStore')
+const { env } = require('../config/env')
+const { store: jsonStore } = require('./jsonStore')
+const { mongoStore } = require('./mongoStore')
 
-module.exports = store
+module.exports = env.DATABASE_MODE === 'mongo' ? mongoStore : jsonStore

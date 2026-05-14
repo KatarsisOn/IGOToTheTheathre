@@ -10,7 +10,7 @@ The local implementation includes:
 - guest profile, privacy settings, favorites, and history;
 - admin moderation endpoints;
 - manual event import;
-- JSON persistence by default, with environment placeholders for MongoDB Atlas and AI integration.
+- JSON persistence by default, MongoDB Atlas support through `DATABASE_MODE=mongo`, and environment placeholders for AI integration.
 
 ## Local Setup
 
@@ -75,3 +75,24 @@ Frontend:
 ## Safety
 
 The app is not a psychological, medical, emergency, or social service. If user text contains crisis or immediate danger signals, the API returns `careful_mode` and does not recommend events.
+
+## MongoDB Atlas
+
+The backend keeps JSON storage as the default fallback for local tests. To use MongoDB Atlas:
+
+1. Put the real connection string into `backend/.env` as `MONGODB_URI`.
+2. Set:
+
+```text
+DATABASE_MODE=mongo
+MONGODB_DB_NAME=igotothetheatre
+```
+
+3. Start the API:
+
+```bash
+cd backend
+npm start
+```
+
+On startup the Mongo store seeds cities, strategies, leisure formats, safety rules, data sources, and demo events if the database is empty.
