@@ -34,6 +34,8 @@ function defaultProfile(sessionId) {
 class MongoStore {
   constructor() {
     this.connectionPromise = null
+    this.ensurePromise = null
+    this.isEnsured = false
     this.storage = 'mongo'
   }
 
@@ -53,6 +55,18 @@ class MongoStore {
 
   async ensure() {
     await this.connect()
+    if (this.isEnsured) return
+    if (this.ensurePromise) {
+      await this.ensurePromise
+      return
+    }
+
+    this.ensurePromise = this.seed()
+    await this.ensurePromise
+    this.isEnsured = true
+  }
+
+  async seed() {
     const seed = createSeedData()
 
     await Promise.all([
@@ -148,7 +162,7 @@ class MongoStore {
     const profile = await models.Profile.findOneAndUpdate(
       { sessionId },
       { $setOnInsert: defaultProfile(sessionId) },
-      { upsert: true, new: true },
+      { upsert: true, returnDocument: 'after' },
     )
     return plain(profile)
   }
@@ -161,7 +175,11 @@ class MongoStore {
       privacy: { ...current.privacy, ...(patch.privacy || {}) },
       updatedAt: new Date().toISOString(),
     }
-    const profile = await models.Profile.findOneAndUpdate({ sessionId }, { $set: next }, { new: true })
+    const profile = await models.Profile.findOneAndUpdate(
+      { sessionId },
+      { $set: next },
+      { returnDocument: 'after' },
+    )
     return plain(profile)
   }
 
@@ -277,7 +295,7 @@ class MongoStore {
       await models.Event.findOneAndUpdate(
         { id },
         { $set: { ...patch, updatedAt: new Date().toISOString() } },
-        { new: true },
+        { returnDocument: 'after' },
       ).lean(),
     )
   }
@@ -288,7 +306,7 @@ class MongoStore {
       await models.SafetyRule.findOneAndUpdate(
         { id },
         { $set: { enabled: true, severity: 'medium', ...rule, id } },
-        { upsert: true, new: true },
+        { upsert: true, returnDocument: 'after' },
       ).lean(),
     )
   }
@@ -299,7 +317,7 @@ class MongoStore {
       await models.DataSource.findOneAndUpdate(
         { id },
         { $set: { enabled: false, trustLevel: 'medium', ...source, id } },
-        { upsert: true, new: true },
+        { upsert: true, returnDocument: 'after' },
       ).lean(),
     )
   }

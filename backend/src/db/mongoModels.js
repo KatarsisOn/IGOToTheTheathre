@@ -1,6 +1,7 @@
 const mongoose = require('mongoose')
 
 const options = {
+  id: false,
   strict: false,
   versionKey: false,
   timestamps: false,

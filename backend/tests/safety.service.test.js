@@ -13,6 +13,11 @@ test('detects careful mode for crisis text', () => {
   assert.ok(result.message.includes('не подбирать мероприятие'))
 })
 
+test('detects careful mode for self-harm wording', () => {
+  const result = analyzeTextSafety('мне очень плохо, хочу причинить себе вред', safetyRules)
+  assert.equal(result.carefulMode, true)
+})
+
 test('allows normal leisure text', () => {
   const result = analyzeTextSafety('устала после учебы, хочу спокойно выйти в театр', safetyRules)
   assert.equal(result.carefulMode, false)
