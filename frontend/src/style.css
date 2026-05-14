@@ -59,6 +59,11 @@ button {
   cursor: pointer;
 }
 
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
 svg {
   display: block;
   width: 18px;
@@ -309,15 +314,15 @@ input[type='range'] {
 .chat-panel {
   grid-area: chat;
   display: grid;
-  min-height: 488px;
+  min-height: 396px;
   overflow: hidden;
 }
 
 .chat-stream {
   display: grid;
   gap: 12px;
-  align-content: end;
-  min-height: 310px;
+  align-content: start;
+  min-height: 218px;
   padding: 18px;
 }
 
@@ -621,6 +626,46 @@ input[type='range'] {
   padding: 22px;
 }
 
+.compact-state {
+  grid-area: recommendation;
+  min-height: 0;
+  color: var(--ruby-dark);
+  background: #fff4ef;
+}
+
+.compact-state p,
+.privacy-copy {
+  max-width: 760px;
+  color: var(--muted);
+}
+
+.error-banner,
+.success-banner,
+.loading-banner {
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  font-weight: 680;
+}
+
+.error-banner {
+  color: var(--danger);
+  border: 1px solid #e7b3aa;
+  background: #fff0ed;
+}
+
+.success-banner {
+  color: #425338;
+  border: 1px solid #cfdcc4;
+  background: var(--sage-soft);
+}
+
+.loading-banner {
+  color: var(--ruby-dark);
+  border: 1px solid rgba(143, 38, 55, 0.2);
+  background: var(--ruby-soft);
+}
+
 .form-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -640,14 +685,27 @@ input[type='range'] {
 }
 
 .favorite-item strong,
-.favorite-item span {
+.favorite-item span,
+.history-row strong,
+.history-row span {
   display: block;
 }
 
 .favorite-item span,
-.favorite-item p {
+.favorite-item p,
+.history-row span {
   margin-top: 6px;
   color: var(--muted);
+}
+
+.history-row {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.empty-state {
+  color: var(--muted);
+  font-size: 0.92rem;
 }
 
 .toggle-row {
@@ -674,7 +732,7 @@ input[type='range'] {
 
 .admin-row {
   display: grid;
-  grid-template-columns: 1.4fr 0.7fr 0.7fr 0.7fr;
+  grid-template-columns: 1.4fr 0.7fr 0.8fr 0.7fr 0.8fr;
 }
 
 .admin-row + .admin-row {
@@ -697,6 +755,38 @@ input[type='range'] {
   font-size: 0.78rem;
   font-weight: 780;
   text-transform: uppercase;
+}
+
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.metric-grid span {
+  padding: 12px;
+  color: var(--ruby-dark);
+  border: 1px solid rgba(143, 38, 55, 0.2);
+  border-radius: var(--radius);
+  background: var(--ruby-soft);
+  font-weight: 720;
+}
+
+.mini-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 0.8fr) minmax(0, 0.6fr) auto;
+  gap: 12px;
+  align-items: end;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-warm);
+}
+
+.table-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .status-strip {
@@ -781,6 +871,11 @@ input[type='range'] {
     min-height: 0;
   }
 
+  .chat-stream {
+    min-height: 0;
+    align-content: start;
+  }
+
   .message {
     max-width: 94%;
   }
@@ -798,6 +893,8 @@ input[type='range'] {
   }
 
   .form-grid,
+  .mini-form,
+  .metric-grid,
   .admin-row {
     grid-template-columns: 1fr;
   }
