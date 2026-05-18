@@ -1,5 +1,6 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:4000/api'
 const SESSION_KEY = 'theater_bot_anonymous_session_id'
+const ADMIN_TOKEN_KEY = 'theater_bot_admin_token'
 
 function createSessionId() {
   if (window.crypto?.randomUUID) {
@@ -22,12 +23,31 @@ export function resetSessionId() {
   return getSessionId()
 }
 
+export function getAdminToken() {
+  return localStorage.getItem(ADMIN_TOKEN_KEY) || ''
+}
+
+export function setAdminToken(token) {
+  localStorage.setItem(ADMIN_TOKEN_KEY, token)
+}
+
+export function clearAdminToken() {
+  localStorage.removeItem(ADMIN_TOKEN_KEY)
+}
+
 async function request(path, options = {}) {
+  const adminToken = getAdminToken()
+  const adminHeaders =
+    adminToken && (path.startsWith('/admin') || path === '/auth/admin/me')
+      ? { Authorization: `Bearer ${adminToken}` }
+      : {}
+
   const response = await fetch(`${API_BASE_URL}${path}`, {
     method: options.method || 'GET',
     headers: {
       'Content-Type': 'application/json',
       'X-Anonymous-Session-Id': getSessionId(),
+      ...adminHeaders,
       ...(options.headers || {}),
     },
     body: options.body ? JSON.stringify(options.body) : undefined,
@@ -56,6 +76,8 @@ async function request(path, options = {}) {
 export const api = {
   health: () => request('/health'),
   catalog: () => request('/catalog'),
+  loginAdmin: (body) => request('/auth/admin/login', { method: 'POST', body }),
+  getAdminSession: () => request('/auth/admin/me'),
   sendMessage: (body) => request('/chat/message', { method: 'POST', body }),
   createRecommendation: (body) => request('/recommendations', { method: 'POST', body }),
   sendFeedback: (recommendationId, body) =>
@@ -69,9 +91,12 @@ export const api = {
   clearHistory: () => request('/history', { method: 'DELETE' }),
   getAdminEvents: (query = '') => request(`/admin/events${query}`),
   createAdminEvent: (body) => request('/admin/events', { method: 'POST', body }),
+  updateAdminEvent: (id, body) => request(`/admin/events/${id}`, { method: 'PUT', body }),
   moderateEvent: (id, body) => request(`/admin/events/${id}/moderate`, { method: 'POST', body }),
   getSafetyRules: () => request('/admin/safety-rules'),
   createSafetyRule: (body) => request('/admin/safety-rules', { method: 'POST', body }),
+  updateSafetyRule: (id, body) => request(`/admin/safety-rules/${id}`, { method: 'PUT', body }),
   getDataSources: () => request('/admin/data-sources'),
+  updateDataSource: (id, body) => request(`/admin/data-sources/${id}`, { method: 'PUT', body }),
   importDemoEvents: () => request('/admin/data-sources/import', { method: 'POST', body: {} }),
 }

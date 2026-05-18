@@ -1,8 +1,9 @@
 const { createApp } = require('./app')
-const { env } = require('./config/env')
+const { env, validateRuntimeConfig } = require('./config/env')
 const store = require('./db/store')
 
 async function start() {
+  validateRuntimeConfig()
   await store.ensure()
 
   const app = createApp()
